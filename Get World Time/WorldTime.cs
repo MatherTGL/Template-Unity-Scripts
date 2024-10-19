@@ -15,12 +15,12 @@ namespace GameAssets.Scripts.Service.Time
 
         private static DateTime lastFetchTime;
 
-        private static TimeSpan cacheDuration = TimeSpan.FromMinutes(10);
+        private static TimeSpan cacheDuration = TimeSpan.FromSeconds(30);
 
 
         public static async Task<DateTime> GetAsync()
         {
-            if (cachedTime.HasValue && DateTime.UtcNow - lastFetchTime < cacheDuration)
+            if (cachedTime.HasValue && DateTime.Now - lastFetchTime < cacheDuration)
                 return cachedTime.Value;
 
             try
@@ -35,10 +35,16 @@ namespace GameAssets.Scripts.Service.Time
                     if (response.Headers.TryGetValues("date", out values))
                     {
                         string todaysDate = values.First();
-                        return DateTime.ParseExact(todaysDate,
-                            "ddd, dd MMM yyyy HH:mm:ss 'GMT'",
-                            CultureInfo.InvariantCulture.DateTimeFormat,
-                            DateTimeStyles.AssumeUniversal);
+
+                        DateTime extract = DateTime.ParseExact(todaysDate,
+                                                    "ddd, dd MMM yyyy HH:mm:ss 'GMT'",
+                                                    CultureInfo.InvariantCulture.DateTimeFormat,
+                                                    DateTimeStyles.AssumeUniversal);
+
+                        lastFetchTime = extract;
+                        cachedTime = lastFetchTime;
+
+                        return extract;
                     }
                 }
             }
